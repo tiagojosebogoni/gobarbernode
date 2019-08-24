@@ -32,7 +32,7 @@ class UserController {
       email: Yup.string().email(),
       oldPassword: Yup.string()
         .min(6)
-        .when('oldPassword', (oldPassword, field) =>
+        .when('password', (oldPassword, field) =>
           oldPassword ? field.required() : field
         ),
       confirmPassword: Yup.string().when('password', (password, field) =>
@@ -47,7 +47,6 @@ class UserController {
     const { email, oldPassword } = req.body;
 
     const user = await User.findByPk(req.userId);
-
     if (email !== user.email) {
       const userExists = await User.findOne({
         where: { email: req.body.email },
@@ -57,12 +56,12 @@ class UserController {
         return res.status(400).json({ error: 'Usuário não existe' });
       }
     }
-
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
       return res.status(400).json({ error: 'Password não confere' });
     }
 
-    const { id, name, provider } = await User.update(req.body);
+    const { id, name, provider } = await user.update(req.body);
+
     return res.json({ id, name, email, provider });
   }
 }
